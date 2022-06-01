@@ -16,6 +16,7 @@ MongoClient.connect('mongodb+srv://dhgh9590:ghtjfl00@cluster0.emvbk.mongodb.net/
     });
 });
 
+
 //서버에 데이터 저장
 app.post("/add",(req,res)=>{
     db.collection("count").findOne({name : "게시물갯수"},function(에러,결과){
@@ -27,7 +28,9 @@ app.post("/add",(req,res)=>{
             uid : req.body.uid,
             time : req.body.time,
             name : req.body.name,
-            photo : req.body.photo
+            photo : req.body.photo,
+            heart : req.body.heart,
+            heartUser : req.body.heartUser,
         }
         db.collection("post").insertOne(data,function(error,결과){
             console.log("저장완료");
@@ -57,5 +60,55 @@ app.put("/edit",function(req,res){
     db.collection("post").updateOne({_id : req.body._id},{$set : {title: req.body.title,url:req.body.url}},function(에러,결과){});
 });
 
+//서버에 있는 하트 카운트 데이터 수정 요청
+app.put("/heartEdit",function(req,res){
+    db.collection("post").updateOne({_id : req.body._id},{$set : {heart: req.body.heart,heartUser : req.body.heartUser}},function(에러,결과){});
+});
 
+//검색기능 제목으로 검색
+app.post("/search",function(req,res){
+    let 검색조건 = [
+        {
+            $search: {
+                index: 'titleSearch',
+                text: {
+                  query: req.body.search,
+                  path: ['title']  // 제목날짜 둘다 찾고 싶으면 ['제목', '날짜']
+                }
+            }
+        }
+    ]
+    db.collection("post").aggregate(검색조건).toArray((에러,결과)=>{
+        res.json({posts : 결과})
+    })
+});
+
+//검색기능 사용자 아이디로 검색
+app.post("/nameSearch",function(req,res){
+    let 검색조건 = [
+        {
+            $search: {
+                index: 'titleSearch',
+                text: {
+                  query: req.body.search,
+                  path: ['name']  // 제목날짜 둘다 찾고 싶으면 ['제목', '날짜']
+                }
+            }
+        }
+    ]
+    db.collection("post").aggregate(검색조건).toArray((에러,결과)=>{
+        res.json({posts : 결과})
+    })
+});
+
+//메인 페이지
+app.use(express.static(path.join(__dirname, 'music/build')));
+
+app.get('/', function (요청, 응답) {
+  응답.sendFile(path.join(__dirname, '/music/build/index.html'));
+});
+
+app.get('*', function (요청, 응답) {
+    응답.sendFile(path.join(__dirname, '/music/build/index.html'));
+});
 
