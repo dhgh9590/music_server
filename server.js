@@ -39,6 +39,41 @@ app.post("/add",(req,res)=>{
     });
 });
 
+//서버에 댓글 저장
+app.post('/comment',(req,res) => {
+    db.collection("commentCount").findOne({name :"댓글갯수"},function(에러,결과){
+        let 총게시물갯수 = 결과.totalComment;
+        let data = {
+            _id : 총게시물갯수 + 1,
+            id : req.body.id,
+            uid : req.body.uid,
+            time : req.body.time,
+            name : req.body.name,
+            photo : req.body.photo,
+            comment : req.body.comment
+        };
+        db.collection('comment').insertOne(data,(에러,결과)=>{
+            console.log("댓글 저장 완료")
+            db.collection("commentCount").updateOne({name:"댓글갯수"},{ $inc : {totalComment:1}})
+        });
+    });
+});
+
+//서버에서 있는 댓글 데이터 요청
+app.post("/commentData",(req,res)=>{
+    db.collection('comment').find({id : req.body.id}).toArray((에러,결과)=>{
+        res.json({comment : 결과});
+    });
+});
+
+//서버에 있는 댓글 데이터 삭제 요청
+app.delete("/commentDelete",function(req,res){
+    let 삭제할데이터 = { _id: req.body._id,uid :  req.body.uid};
+    db.collection("comment").deleteOne(삭제할데이터,function(에러,결과){
+        console.log("삭제 완료");
+    });
+});
+
 //서버에 있는 데이터 요청
 app.get("/data",function(req,res){
     db.collection("post").find().toArray(function(에러,결과){
@@ -49,7 +84,6 @@ app.get("/data",function(req,res){
 //서버에 있는 데이터 삭제 요청
 app.delete("/delete",function(req,res){
     let 삭제할데이터 = {_id: req.body._id, uid :  req.body.uid};
-    console.log(req.body.uid);
     db.collection("post").deleteOne(삭제할데이터,function(에러,결과){
         console.log("삭제 완료");
     });
