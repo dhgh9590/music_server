@@ -16,7 +16,6 @@ MongoClient.connect('mongodb+srv://dhgh9590:ghtjfl00@cluster0.emvbk.mongodb.net/
     });
 });
 
-
 //서버에 데이터 저장
 app.post("/add",(req,res)=>{
     db.collection("count").findOne({name : "게시물갯수"},function(에러,결과){
