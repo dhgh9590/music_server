@@ -55,6 +55,8 @@ const Main = (props) => {
         .then(res => res.json())
         .then(data => {
             props.setData(data.posts)
+        }).catch(error => {
+            console.log(error)
         })
     }
 
